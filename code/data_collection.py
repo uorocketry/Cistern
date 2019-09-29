@@ -62,27 +62,27 @@ def discover(ser):
             print("Please connect a DATAQ Instruments device")
             input("Press ENTER to try again...")
             have_device = False
-
+#
 # Sends a passed command string after appending <cr>
 def send_cmd(command):
     ser.write((command+'\r').encode())
     time.sleep(.1)
-    if not(acquiring):
-        # Echo commands if not acquiring
-        while True:
-            if(ser.inWaiting() > 0):
-                while True:
-                    try:
-                        s = ser.readline().decode()
-                        s = s.strip('\n')
-                        s = s.strip('\r')
-                        s = s.strip(chr(0))
-                        break
-                    except:
-                        continue
-                if s != "":
-                    print (s)   #printing the command we are sending,
-                    break       #can probably be removed at some point.
+    # if not(acquiring):
+    #     # Echo commands if not acquiring
+    #     while True:
+    #         if(ser.inWaiting() > 0):
+    #             while True:
+    #                 try:
+    #                     s = ser.readline().decode()
+    #                     s = s.strip('\n')
+    #                     s = s.strip('\r')
+    #                     s = s.strip(chr(0))
+    #                     break
+    #                 except:
+    #                     continue
+    #             if s != "":
+    #                 print (s)   #printing the command we are sending,
+    #                 break       #can probably be removed at some point.
 
 
 
@@ -102,6 +102,10 @@ send_cmd("ps 0")
 
 config_scn_lst()
 
+
+
+f = open("data.txt", "w+") #write to file, if not there, create it.
+
 # Define flag to indicate if we are currently acquiring data
 acquiring = False
 # This is the main program loop, broken only by typing a command key as defined
@@ -110,7 +114,7 @@ while True:
     if keyboard.is_pressed('g' or  'G'):
          keyboard.read_key()
          acquiring = True
-         f = open("data.txt", "w+") #write to file, if not there, create it.
+
          send_cmd("start")
     # If key 'S' stop scanning
     if keyboard.is_pressed('s' or 'S'):
@@ -120,18 +124,24 @@ while True:
          ser.flushInput()
          print ("")
          print ("stopped")
-         f.close() #close the file.
+
          acquiring = False
     # If key 'Q' exit
     if keyboard.is_pressed('q' or 'Q'):
          keyboard.read_key()
          send_cmd("stop")
          ser.flushInput()
+         f.close() #close the file.
          break
-
+    # This is the slist position pointer. Ranges from 0 (first position)
+    # to len(slist). Tells us what channel we are currently reading.
+    slist_pointer = 0
 #while the # of bytes ready to be read is greater than the number of bytes in
     while (ser.inWaiting() > (2 * len(slist))): # a message, read them.
-         for i in range(len(slist)):
+
+        output_string = ""
+        for i in range(len(slist)):
+
             # Always two bytes per sample...read them
             bytes = ser.read(2)
             # Only analog channels for a DI-1100, with digital_in states
@@ -150,14 +160,14 @@ while True:
                 result = result >> 2
                 result = result << 2
 
-                output_string = output_string + ", " + result
+                output_string = str(round(result/32768,3))
 
             elif (slist_pointer != 0):
                 # NOT the first slist position
                 # Two LSBs carry information only for first slist posiiton,
                 # which this isn't. So, ...
 
-                output_string = output_string + ", " + result
+                output_string = output_string + ", " + str(round(result/32768,3))
 
             # Get the next position in slist
             slist_pointer += 1
@@ -165,11 +175,12 @@ while True:
             if (slist_pointer + 1) > (len(slist)):
                 # End of a pass through slist items
                 # Append digital inputs to output string
-                output_string = output_string + ", " + dig_in + "\n"
+                output_string = output_string + ", " + str(dig_in) + "\n"
                 #print(output_string.rstrip(", ") + "           ", end="\r\n")
                 f.write(output_string)
                 output_string = ""
                 slist_pointer = 0
+
 
 ser.close()
 SystemExit
