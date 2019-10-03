@@ -15,5 +15,5 @@ end = time.time()
 
 print("it took", (end-start)*1000, "ms to write all the data.")
 
-f.write(str((start-end)*1000))
+f.write(str((end-start)*1000))
 f.close()
