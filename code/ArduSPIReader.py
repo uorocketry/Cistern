@@ -11,7 +11,7 @@ def discovery():
     # Will eventually hold the com port of the detected device, if any
     hooked_port = ""
     for p in available_ports:
-        # Do we have a DATAQ Instruments device?
+        # Do we have an ardunio device?
         if ("VID:PID=0403" in p.hwid):
             # Yes!  Dectect and assign the hooked com port
             hooked_port = p.device
@@ -25,7 +25,7 @@ def discovery():
         ser.open()
         return(True)
     else:
-        # Get here if no DATAQ Instruments devices are detected
+        # Get here if no ardunio devices are detected
         print("Please connect an ardunio")
         input("Press ENTER to try again...")
         return(False)

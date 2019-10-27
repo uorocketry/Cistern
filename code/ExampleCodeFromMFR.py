@@ -26,17 +26,6 @@ import serial.tools.list_ports
 import keyboard
 import time
 
-#min SAMPLE_RATE =  1500 with 1 channel,
-#                   2000 with 2 channels,
-#                   2500 with 3 channels,
-#                   3000 with 4 channels active.
-#max SAMPLE_RATE =  65535
-#the effective sample rate (in Hz) is 60,000,000/(SAMPLE_RATE).
-SAMPLE_RATE = 3000
-
-
-f = open("data-"+time.time()+".txt", "w+") #write to file, if not there, create it.
-
 """
 Example slist for model DI-1100
 0x0000 = Analog channel 0, ±10 V range
@@ -44,9 +33,8 @@ Example slist for model DI-1100
 0x0002 = Analog channel 2, ±10 V range
 0x0003 = Analog channel 3, ±10 V range
 """
-
+#slist = [0x0000,0x0001,0x0002,0x0003]
 slist = [0x0000,0x0001,0x0002,0x0003]
-#slist = [0x0000]
 
 ser=serial.Serial()
 
@@ -62,7 +50,7 @@ every nth value, but is recommended since it reduces noise by a factor of n^0.5
 'decimation_factor' = 1 disables decimation and attemps to output all values.
 """
 # Define a decimation factor variable
-decimation_factor = 100
+decimation_factor = 1000
 
 # Contains accumulated values for each analog channel used for the average calculation
 achan_accumulation_table = list(())
@@ -88,7 +76,7 @@ def discovery():
         print("Found a DATAQ Instruments device on",hooked_port)
         ser.timeout = 0
         ser.port = hooked_port
-        ser.baudrate = 4000000
+        ser.baudrate = '115200'
         ser.open()
         return(True)
     else:
@@ -123,7 +111,7 @@ def config_scn_lst():
     # Scan list position must start with 0 and increment sequentially
     position = 0
     for item in slist:
-        send_cmd("slist "+ str(position ) + " " + str(item)) # send in format 'slist num config'
+        send_cmd("slist "+ str(position ) + " " + str(item))
         # Add the channel to the logical list.
         achan_accumulation_table.append(0)
         position += 1
@@ -135,15 +123,13 @@ send_cmd("stop")
 # Define binary output mode
 send_cmd("encode 0")
 # Keep the packet size small for responsiveness
-#we can increase this up to 'ps 7', for larger packets, which will prevent the
-#buffer from overflowing.
 send_cmd("ps 0")
 # Configure the instrument's scan list
 config_scn_lst()
 
 # Define sample rate = 1 Hz, where decimation_factor = 1000:
 # 60,000,000/(srate) = 60,000,000 / 60000 / decimation_factor = 1 Hz
-send_cmd("srate "+ str(SAMPLE_RATE))
+send_cmd("srate 60000")
 print("")
 print("Ready to acquire...")
 print ("")
@@ -159,8 +145,8 @@ dec_count = decimation_factor
 # Init the logical channel number for enabled analog channels
 achan_number = 0
 
-# This is the constructed output list
-output_array = list()
+# This is the constructed output string
+output_string = ""
 
 # This is the main program loop, broken only by typing a command key as defined
 while True:
@@ -184,89 +170,69 @@ while True:
          send_cmd("stop")
          ser.flushInput()
          break
-         #while the # of bytes ready to be read is greater than the number of bytes in
-    while (ser.inWaiting() > (2 * len(slist)*1024)): # a message, read them.
-        bytes = ser.read(2*len(slist)*1024)
+    while (ser.inWaiting() > (2 * len(slist))):
+         for i in range(len(slist)):
+            # Always two bytes per sample...read them
+            bytes = ser.read(2)
+            # Only analog channels for a DI-1100, with dig_in states appearing in the two LSBs of ONLY the first slist position
+            result = int.from_bytes(bytes,byteorder='little', signed=True)
 
-        out = []
-        for j in range(1024):
-            for i in range(len(slist)):
-                # Always two bytes per sample...read them
-                #bytes = ser.read(2)
+            # Since digital input states are embedded into the analog data stream there are four possibilities:
+            if (dec_count == 1) and (slist_pointer == 0):
+                # Decimation loop finished and first slist position
+                # Two LSBs carry information only for first slist posiiton. So, ...
+                # Preserve lower two bits representing digital input states
+                dig_in = result & 0x3
+                # Strip two LSBs from value to be added to the analog channel accumulation, preserving sign
+                result = result >> 2
+                result = result << 2
+                # Add the value to the accumulator
+                achan_accumulation_table[achan_number] = result + achan_accumulation_table[achan_number]
+                achan_number += 1
+                # End of a decimation loop. So, append accumulator value / decimation_factor  to the output string
+                output_string = output_string + "{: 3.3f}, ".format(achan_accumulation_table[achan_number-1] * 10 / 32768 / decimation_factor)
 
-                # Only analog channels for a DI-1100, with digital_in states appearing in the two LSBs of ONLY the first slist position
-                result = int.from_bytes(bytes[j*len(slist)*2+i*2:j*len(slist)*2+i*2+2],byteorder='little', signed=True)
+            elif (dec_count == 1) and (slist_pointer != 0):
+                # Decimation loop finished and NOT the first slist position
+                # Two LSBs carry information only for first slist posiiton, which this isn't. So, ...
+                # Just add value to the accumulator
+                achan_accumulation_table[achan_number] = result + achan_accumulation_table[achan_number]
+                achan_number += 1
+                # End of a decimation loop. So, append accumulator value / decimation_factor  to the output string
+                output_string = output_string + "{: 3.3f}, ".format(achan_accumulation_table[achan_number-1] * 10 / 32768 / decimation_factor)
 
-                # Since digital input states are embedded into the analog data stream there are four possibilities:
-                if (dec_count == 1) and (slist_pointer == 0):
-                    # Decimation loop finished and first slist position
-                    # Two LSBs carry information only for first slist posiiton. So, ...
-                    # Preserve lower two bits representing digital input states
-                    dig_in = result & 0x3
-                    # Strip two LSBs from value to be added to the analog channel accumulation, preserving sign
-                    result = result >> 2
-                    result = result << 2
-                    # Add the value to the accumulator
-                    achan_accumulation_table[achan_number] = result + achan_accumulation_table[achan_number]
-                    achan_number += 1
-                    # End of a decimation loop. So, append accumulator value / decimation_factor  to the output string
+            elif (dec_count != 1) and (slist_pointer == 0):
+                # Decimation loop NOT finished and first slist position
+                # Not the end of a decimation loop, but this is the first position in slist. So, ...
+                # Just strip two LSBs, preserving sign...
+                result = result >> 2
+                result = result << 2
+                # ...and add the value to the accumulator
+                achan_accumulation_table[achan_number] = result + achan_accumulation_table[achan_number]
+                achan_number += 1
+            else:
+                # Decimation loop NOT finished and NOT first slist position
+                # Nothing to do except add the value to the accumlator
+                achan_accumulation_table[achan_number] = result + achan_accumulation_table[achan_number]
+                achan_number += 1
 
-                    output_array.append(achan_accumulation_table[achan_number-1] * 10 / 32768 / decimation_factor)
-                elif (dec_count == 1) and (slist_pointer != 0):
-                    # Decimation loop finished and NOT the first slist position
-                    # Two LSBs carry information only for first slist posiiton, which this isn't. So, ...
-                    # Just add value to the accumulator
-                    achan_accumulation_table[achan_number] = result + achan_accumulation_table[achan_number]
-                    achan_number += 1
-                    # End of a decimation loop. So, append accumulator value / decimation_factor  to the output string
+            # Get the next position in slist
+            slist_pointer += 1
 
-                    output_array.append(achan_accumulation_table[achan_number-1] * 10 / 32768 / decimation_factor)
-                elif (dec_count != 1) and (slist_pointer == 0):
-                    # Decimation loop NOT finished and first slist position
-                    # Not the end of a decimation loop, but this is the first position in slist. So, ...
-                    # Just strip two LSBs, preserving sign...
-                    result = result >> 2
-                    result = result << 2
-                    # ...and add the value to the accumulator
-                    achan_accumulation_table[achan_number] = result + achan_accumulation_table[achan_number]
-                    achan_number += 1
+            if (slist_pointer + 1) > (len(slist)):
+                # End of a pass through slist items
+                if dec_count == 1:
+                    # Get here if decimation loop has finished
+                    dec_count = decimation_factor
+                    # Reset analog channel accumulators to zero
+                    achan_accumulation_table = [0] * len(achan_accumulation_table)
+                    # Append digital inputs to output string
+                    output_string = output_string + "{: 3d}, ".format(dig_in)
+                    print(output_string.rstrip(", ") + "           ", end="\r")
+                    output_string = ""
                 else:
-                    # Decimation loop NOT finished and NOT first slist position
-                    # Nothing to do except add the value to the accumlator
-                    achan_accumulation_table[achan_number] = result + achan_accumulation_table[achan_number]
-                    achan_number += 1
-
-                # Get the next position in slist
-                slist_pointer += 1
-
-                if (slist_pointer + 1) > (len(slist)):
-                    # End of a pass through slist items
-                    if dec_count == 1:
-                        # Get here if decimation loop has finished
-                        dec_count = decimation_factor
-                        # Reset analog channel accumulators to zero
-                        achan_accumulation_table = [0] * len(achan_accumulation_table)
-
-                        # Append digital inputs to output string
-                        output_array.append(dig_in)
-                        #print(output_string.rstrip(", ") + "           ", end="\r\n")
-                        #f.write(output_string.rstrip(", ") + "\n")
-                        #f.write(str(output_array))
-                        out.append(output_array)
-
-                        output_array = list()
-                    else:
-                        dec_count -= 1
-                    slist_pointer = 0
-                    achan_number = 0
-        #f.write(str(out))
-
-        #writes to file, with each reading on a new line.
-        f.writelines(str(i) + '\n' for i in out)
-        #print(str(i) + '\n' for i in out)
-
-
-
-f.close() #close the file.
+                    dec_count -= 1
+                slist_pointer = 0
+                achan_number = 0
 ser.close()
 SystemExit
