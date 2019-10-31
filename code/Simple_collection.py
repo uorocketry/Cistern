@@ -25,6 +25,7 @@ import serial
 import serial.tools.list_ports
 import keyboard
 import time
+import configparser
 
 #min SAMPLE_RATE =  1500 with 1 channel,
 #                   2000 with 2 channels,
@@ -32,21 +33,18 @@ import time
 #                   3000 with 4 channels active.
 #max SAMPLE_RATE =  65535
 #the effective sample rate (in Hz) is 60,000,000/(SAMPLE_RATE).
-SAMPLE_RATE = 3000
+
+config = configparser.ConfigParser()
+config.read("config.txt")
+
+f = open("data-"+str(time.time())+".txt", "w+") #write to file, if not there, create it.
 
 
-f = open("data-"+time.time()+".txt", "w+") #write to file, if not there, create it.
+SAMPLE_RATE = 60000000//(config["DATAQ"].getint("sampling_rate")*1000)
+decimation_factor = config["DATAQ"].getint("decimation_factor")
+channel_count = config["DATAQ"].getint("channel_count")
 
-"""
-Example slist for model DI-1100
-0x0000 = Analog channel 0, ±10 V range
-0x0001 = Analog channel 1, ±10 V range
-0x0002 = Analog channel 2, ±10 V range
-0x0003 = Analog channel 3, ±10 V range
-"""
-
-slist = [0x0000,0x0001,0x0002,0x0003]
-#slist = [0x0000]
+slist = [0x0000,0x0001,0x0002,0x0003][0:channel_count]
 
 ser=serial.Serial()
 
@@ -61,8 +59,6 @@ every nth value, but is recommended since it reduces noise by a factor of n^0.5
 'decimation_factor' must be an integer value greater than zero.
 'decimation_factor' = 1 disables decimation and attemps to output all values.
 """
-# Define a decimation factor variable
-decimation_factor = 100
 
 # Contains accumulated values for each analog channel used for the average calculation
 achan_accumulation_table = list(())

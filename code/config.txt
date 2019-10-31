@@ -1,0 +1,25 @@
+#Note: reading this is not currently implemented. 
+
+[DATAQ]
+#How many channels do we want to use? channels 1,...,channel_count are enabled.
+
+channel_count = 4
+
+#What rate do we sample at(in kHz)? Maximum rate is determined by the number of channels enabled.
+# 1 channel:  40 kHz
+# 2 channels: 30 kHz
+# 3 channels: 24 kHz
+# 4 channels: 20 kHz
+# Minimum rate = 0.915 kHz
+
+sampling_rate = 20
+
+#We average a certain number of samples together before writing them to disk. 
+#How many samples should we average?
+#(Sampling_rate / Decimation_Factor = samples recoded per second)
+
+decimation_factor = 100
+
+
+[ARDUINO]
+
