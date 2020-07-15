@@ -6,13 +6,11 @@ import configparser
 import threading
 import queue
 
-from sensors.pressure import pressure
-from sensors.Thermo_1wire  import thermo
+from sensors.Thermo_MAX31855 import thermo
 from sensors.dataq import dataq
 
-press = pressure()
 dataq = dataq()
-thermo = Thermo()
+thermo = Thermo(0)
 
 config = configparser.ConfigParser()
 config.read("config.txt")
@@ -31,9 +29,6 @@ def init():
         input("")
         exit()
 
-    press.Init('temp')
-    #Thermo.init - no init, yet.
-
 #def read_dataq():
 
 
@@ -49,7 +44,7 @@ def read():
     #     pass
     #     #do nothing
 
-    return dataq.out.get(),
+    return dataq.out.get().append(thermo.read())
 
 
 
@@ -64,10 +59,14 @@ counter = 0
 data = []
 dataq.go()
 #this will eventually prevent button bouncing. currently does 5 secs of reading.
-while time.time()-start_time <= 10 or not 'button pushed':
+#while time.time()-start_time <= 10 or not 'button pushed':
+while True:
     #time.sleep(0.001)
     d = read()
     #print(d[-1])
+
+    if d[4] > 0: # If the digital out(the event buttons) get pushed, exit.
+        break
 
     data.append(d)
     counter +=1
