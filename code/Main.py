@@ -10,7 +10,7 @@ from sensors.Thermo_MAX31855 import thermo
 from sensors.dataq import dataq
 
 dataq = dataq()
-thermo = Thermo(0)
+thermo = Thermo(1,0)
 
 config = configparser.ConfigParser()
 config.read("config.txt")

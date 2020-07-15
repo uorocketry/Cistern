@@ -1,11 +1,9 @@
 import time
 import spidev
 
-bus = 1 #use the SPI bus with 3 CS pins
-
 
 class Thermo_MAX31855:
-    def __init__(self, device):
+    def __init__(self, bus, device):
         self.spi = spidev.SpiDev()
         self.spi.open(bus, device)
 
