@@ -1,18 +1,21 @@
 import time
 import spidev
+import gpiozero
 
+class Thermo:
+    #def __init__(self, bus, device):
+    def __init__(self, pin, spi):
+        self.spi = spi
+        
+        
+        self.ce = gpiozero.DigitalOutputDevice(pin, active_high=False,initial_value=True)
 
-class Thermo_MAX31855:
-    def __init__(self, bus, device):
-        self.spi = spidev.SpiDev()
-        self.spi.open(bus, device)
-
-        self.spi.max_speed_hz = 5000000 #5GHz is the maximum frequency of these chip.
-        self.spi.mode = 0
 
 
     def read(self):
+        self.ce.on()  #We control the chip enable pin manually. 
         data = self.spi.readbytes(4)  #read 32 bits from the interface.
+        self.ce.off()
 
         data = int.from_bytes(data, "big")
 
@@ -28,8 +31,8 @@ class Thermo_MAX31855:
             #then we xor it with all 1's (to flip it from positive to negative) and add 1, then convert
             # to a negative number within python (because python ints are weird).
             # we then divide by 4, because the lcb of this int represents 0.25C.
-            return (~((data >> 17) ^ 0b111111111111111)+1)/4
+            return (~((data >> 18) ^ 0b111111111111111)+1)/4
         else:
             #since it's positive, we don't convert to negative. We just separate
             #out the temperature.
-            return (data >> 17) / 4
+            return (data >> 18) / 4
