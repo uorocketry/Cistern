@@ -9,5 +9,7 @@ project(Cistern)
  
 #However, the file(GLOB...) allows for wildcard additions:
 file(GLOB SOURCES "src/*.cpp")
- 
+
+add_definitions(-lwiringPi)
+
 add_executable(collection ${SOURCES})
