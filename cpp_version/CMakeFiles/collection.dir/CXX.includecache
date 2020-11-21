@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/Cistern/cpp_version/src/main.cpp
+sensor.h
+/home/pi/Cistern/cpp_version/src/sensor.h
+thermo.h
+/home/pi/Cistern/cpp_version/src/thermo.h
+iostream
+-
+unistd.h
+-
+wiringPi.h
+-
+
+/home/pi/Cistern/cpp_version/src/sensor.h
+
+/home/pi/Cistern/cpp_version/src/thermo.h
+
+libraries/wiringpi/wiringPi/wiringPi.h
+

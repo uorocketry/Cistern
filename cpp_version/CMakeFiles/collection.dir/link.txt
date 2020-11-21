@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/collection.dir/src/main.cpp.o CMakeFiles/collection.dir/src/sensor.cpp.o CMakeFiles/collection.dir/src/thermo.cpp.o  -o collection libWIRINGPI.a -lpthread 

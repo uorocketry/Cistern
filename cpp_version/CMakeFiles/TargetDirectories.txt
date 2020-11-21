@@ -1,0 +1,4 @@
+/home/pi/Cistern/cpp_version/CMakeFiles/edit_cache.dir
+/home/pi/Cistern/cpp_version/CMakeFiles/rebuild_cache.dir
+/home/pi/Cistern/cpp_version/CMakeFiles/collection.dir
+/home/pi/Cistern/cpp_version/CMakeFiles/WIRINGPI.dir
