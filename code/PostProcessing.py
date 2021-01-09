@@ -1,7 +1,13 @@
 import Format
 
+import sys
 
-infile_name = input("File to postprocess: ")
+infile_name = ""
+
+if len(sys.argv) == 2:
+    infile_name = sys.argv[1]
+else:
+    infile_name = input ("File to postprocess: ")
 
 infile = open(infile_name, mode='r')
 outfile = open("post_" + infile_name, mode='w')
@@ -16,4 +22,3 @@ while line:
 
 infile.close()
 outfile.close()
-
