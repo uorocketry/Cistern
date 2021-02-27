@@ -5,10 +5,15 @@ def force2(num):
     return num * 1 + 0
 
 #Pressure gauges calibration
+#Swagelock: 
 def press1(num):
-    return num * 1 + 0
+    if num < 1000: 
+        return num * 389.19 - 806.76
+    else: 
+        return num * 705.86 - 2268.4
+#MSP: 
 def press2(num):
-    return num * 1 + 0
+    return num * 638.51 - 341.28
 
 def format(data):
     out = [0,0,0,0]
