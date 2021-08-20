@@ -1,8 +1,14 @@
 #Note: reading this is not currently implemented. 
 
-[DATAQ]
-#How many channels do we want to use? channels 1,...,channel_count are enabled.
+[Thermometers]
+enabled=true
+probes=23,24,25,16
 
+[DATAQ]
+enabled=true
+serial_number=593FE759
+
+#How many channels do we want to use? channels 1,...,channel_count are enabled.
 channel_count = 4
 
 #What rate do we sample at(in kHz)? Maximum rate is determined by the number of channels enabled.
@@ -11,15 +17,12 @@ channel_count = 4
 # 3 channels: 24 kHz
 # 4 channels: 20 kHz
 # Minimum rate = 0.915 kHz
-
 sampling_rate = 20
 
-#We average a certain number of samples together before writing them to disk. 
-#How many samples should we average?
-#(Sampling_rate / Decimation_Factor = samples recoded per second)
+[DATAQ_2]
+enabled=true
+serial_number=608C189A
 
-decimation_factor = 100
+channel_count = 4
 
-
-[ARDUINO]
-
+sampling_rate = 20

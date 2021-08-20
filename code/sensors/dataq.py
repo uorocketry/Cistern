@@ -19,10 +19,11 @@ class dataq(threading.Thread):
         self.SAMPLE_RATE = 60000000//(config.getint("sampling_rate")*1000)
         self.decimation_factor = config.getint("decimation_factor")
         self.channel_count = config.getint("channel_count")
+        deviceSerial = config["serial_number"]
 
         self.slist = [0x0000,0x0001,0x0002,0x0003][0:self.channel_count]
 
-        if not self.setSerial(ports):
+        if not self.setSerial(ports, deviceSerial):
             return False
         # Stop in case DI-1100 is already scanning
         self.send_cmd("stop")
@@ -42,17 +43,17 @@ class dataq(threading.Thread):
         return True
 
     def send_output_fmt(self):
-        out = ""
+        out = []
         for i in range(self.channel_count):
-            out += "Channel#"+str(i) +"\t"
-        out += 'digital out \t samples averaged \t'
+            out.append("Channel#"+str(i))
+        out += ['digital out', 'samples averaged']
         return out
 
-    def setSerial(self,ports):
+    def setSerial(self, ports, deviceSerial):
         self.ser=serial.Serial()
         for p in ports:
             # Do we have a DATAQ Instruments device?
-            if ("VID:PID=0683" in p.hwid):
+            if ("VID:PID=0683" in p.hwid and deviceSerial in p.hwid):
                 # Yes!  Dectect and assign the hooked com port
                 self.ser.timeout = 0
                 self.ser.port = p.device
