@@ -1,7 +1,6 @@
-#Note: reading this is not currently implemented. 
 
 [Thermometers]
-enabled=true
+enabled=false
 probes=23,24,25,16
 
 [DATAQ]
@@ -20,7 +19,7 @@ channel_count = 4
 sampling_rate = 20
 
 [DATAQ_2]
-enabled=true
+enabled=false
 serial_number=608C189A
 
 channel_count = 4

@@ -18,7 +18,7 @@ spi.mode = 0
 spi.max_speed_hz = 500000
 
 dataq1 = dataq()
-dataq2 = dataq()
+dataq2 = None
 
 thermos = []
 
@@ -43,6 +43,7 @@ def init():
 
     if config['DATAQ_2']['enabled']=='true':
         if dataq2.Init(config['DATAQ_2'], ports):
+            dataq2 = dataq()
             dataq2_len = int(config['DATAQ_2']['channel_count'])
             print("Found second DATAQ!")
             header += dataq2.send_output_fmt()
@@ -96,7 +97,11 @@ try:
 
         #Every second, print some data to the file.
         if time.time() - t > 1:
-            print(Format.pretty(d, dataq1.channel_count, dataq1.channel_count))
+            dq_chans = 0
+            if dataq2 != None:
+                dq_chans = dataq.channel_count
+
+            print(Format.pretty(d, dataq1.channel_count, dq_chans))
             t = time.time()
 
         data.append(d)

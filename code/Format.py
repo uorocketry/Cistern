@@ -1,19 +1,26 @@
 #Force gauges calibration
+#S-gauge
 def force1(num):
-    return num * 1 + 0
+    return num * 6.235 + 0.0624
 def force2(num):
     return num * 1 + 0
 
 #Pressure gauges calibration
-#Swagelock: 
+#Swagelock: Volt -> PSI
 def press1(num):
-    if num < 1000: 
-        return num * 389.19 - 806.76
-    else: 
-        return num * 705.86 - 2268.4
+    return num
+
+    #return num**2 * 154.76 - num*398.39 + 253.85   # previous calibration
+
+    #if num < 4.616: 
+    #    return num * 389.19 - 806.76
+    #else: 
+    #    return num * 705.86 - 2268.4
 #MSP: 
 def press2(num):
-    return num# * 638.51 - 341.28
+    return num
+
+    #return num * 627.11 - 140.53                    # previous calibration
 
 def format(data, dataq1_len, dataq2_len):
     dq_len = dataq1_len + dataq2_len
@@ -31,13 +38,14 @@ def format(data, dataq1_len, dataq2_len):
             num = float(data[i])
             #do conversion here
             if i == 0:
-               num = force1(num)
+               num = press2(num)
             if i == 1:
-                num = force2(num)
+                num = press1(num)
+            #Not connected currently
             if i == 2:
-               num = press1(num)
+               num = force1(num)
             if i == 3:
-                num = press2(num)
+                num = force2(num)
     
             out.append(num)
         
@@ -53,6 +61,7 @@ def format(data, dataq1_len, dataq2_len):
                num = force1(num)
             if i == 1:
                 num = force2(num)
+            #Not connected currently
             if i == 2:
                num = press1(num)
             if i == 3:
@@ -77,13 +86,14 @@ def pretty(data, dataq1_len, dataq2_len):
             num = float(data[i])
             #do conversion for sensors connected to the first Dataq here
             if i == 0:
-               num = '{: 3.3f} Kg\t'.format( force1(num))
+               num = '{: 3.3f} PSI\t'.format( press2(num))
             if i == 1:
-               num = '{: 3.3f} Kg\t'.format( force2(num))
+               num = '{: 3.3f} PSI\t'.format( press1(num))
+            # Not currently connected
             if i == 2:
-               num = '{: 3.3f} KPa\t'.format( press1(num))
+               num = '{: 3.3f} Kg\t'.format( force1(num))
             if i == 3:
-               num = '{: 3.3f} KPa\t'.format( press2(num))
+               num = '{: 3.3f} Kg\t'.format( force2(num))
             out += num
         data = data[dataq1_len:]
         # Copy digital channel + sample count to output
@@ -98,10 +108,11 @@ def pretty(data, dataq1_len, dataq2_len):
                num = '{: 3.3f} Kg\t'.format( force1(num))
             if i == 1:
                num = '{: 3.3f} Kg\t'.format( force2(num))
+            # Not currently connected
             if i == 2:
-               num = '{: 3.3f} KPa\t'.format( press1(num))
+               num = '{: 3.3f} PSI\t'.format( press1(num))
             if i == 3:
-               num = '{: 3.3f} KPa\t'.format( press2(num))
+               num = '{: 3.3f} PSI\t'.format( press2(num))
             out += num
         data = data[dataq2_len:]
         # Copy digital channel + sample count to output

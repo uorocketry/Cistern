@@ -25,6 +25,7 @@ import serial
 import serial.tools.list_ports
 import keyboard
 import time
+import configparser
 
 import Format
 
@@ -35,43 +36,12 @@ Example slist for model DI-1100
 0x0002 = Analog channel 2, ±10 V range
 0x0003 = Analog channel 3, ±10 V range
 """
-#slist = [0x0000,0x0001,0x0002,0x0003]
 slist = [0x0000,0x0001,0x0002,0x0003]
 
 ser=serial.Serial()
 
-
-#Define formatting for the different sensors.
-def Format_Force_1(num):
-    const1 = 1
-    const2 = 0 #TODO: replace these with actual values, once we've calibrated the force gauges!
-    num = num * const1 + const2
-    return "{: 3.3f}".format(num) + " Kg\t"
-
-def Format_Force_2(num):
-    const1 = 1
-    const2 = 0 #TODO: replace these with actual values, once we've calibrated the force gauges!
-    num = num * const1 + const2
-    return "{: 3.3f}".format(num) + " Kg\t"
-
-def Format_Press_1(num):
-    const1 = 625
-    const2 = 312.5 #This is for the MSP300, and the numbers are from that datasheet.
-    #Specifically, at 0 PSI, we get 0.5V, and at 4.5V, we get 2500 PSI. Hence, the values stated here.
-
-    num = num * const1 + const2
-    return "{: 3.3f}".format(num) + " PSI\t"
-
-def Format_Press_2(num):
-    const1 = 1
-    const2 = 0 #TODO: replace these with actual values, once we've calibrated the Swagelock transducer!
-    num = num * const1 + const2
-    return "{: 3.3f}".format(num) + " KPa\t"
-
-
-
-
-
+config = configparser.ConfigParser()
+config.read("config.txt")
 
 """
 Since model DI-1100 cannot scan slower that 915 Hz at the protocol level,
@@ -102,7 +72,8 @@ def discovery():
     hooked_port = ""
     for p in available_ports:
         # Do we have a DATAQ Instruments device?
-        if ("VID:PID=0683" in p.hwid):
+        # Serial for Dataq #1
+        if ("VID:PID=0683" in p.hwid and config['DATAQ']['serial_number'] in p.hwid):
             # Yes!  Dectect and assign the hooked com port
             hooked_port = p.device
             break
@@ -276,10 +247,7 @@ while time.time() - start_time < 10:
                     # Append digital inputs to output string
                     output_string.append(dig_in)
                     
-                    #TODO: insert formatting for force measurements. Maybe insert 
-                    #the actual conversion right when it's read in? 
-                    
-                    print(Format.pretty(output_string), end="\r")
+                    print(Format.pretty(output_string, 4, 0), end="\r")
                     output_string = []
                 else:
                     dec_count -= 1
