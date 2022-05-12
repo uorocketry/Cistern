@@ -25,3 +25,9 @@ serial_number=608C189A
 channel_count = 4
 
 sampling_rate = 20
+
+[Server]
+enabled=false
+
+host=0.0.0.0
+port=8080

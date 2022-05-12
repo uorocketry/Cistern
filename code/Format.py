@@ -8,7 +8,7 @@ def force2(num):
 #Pressure gauges calibration
 #Swagelock: Volt -> PSI
 def press1(num):
-    return num
+    return 98.88933 * num**2 - 235.8464 * num + 101.047911
 
     #return num**2 * 154.76 - num*398.39 + 253.85   # previous calibration
 
@@ -18,7 +18,7 @@ def press1(num):
     #    return num * 705.86 - 2268.4
 #MSP: 
 def press2(num):
-    return num
+    return 620.07 * num - 330.083
 
     #return num * 627.11 - 140.53                    # previous calibration
 
