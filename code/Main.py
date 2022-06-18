@@ -22,7 +22,7 @@ dataq1 = dataq()
 dataq2 = None
 
 thermos = []
-
+server_enabled = False
 items = queue.Queue()
 
 config = configparser.ConfigParser()
@@ -30,14 +30,7 @@ config.read("config.txt")
 
 f = open("data-"+str(time.time())+".txt", "w+") #write to file, if not there, create it.
 
-
 class MyTCPHandler(socketserver.BaseRequestHandler):
-    """
-    The request handler class for the server connecting to the ground station.
-
-    It is instantiated once per connection to the server, and must
-    override the handle() method to implement communication.
-    """
 
     def handle(self):
         # self.request is the TCP socket connected to the client
@@ -47,14 +40,21 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             while True:
                 data = items.get(timeout=3)
 
-                print("Sending: " + data)
-                self.request.sendall(data.encode('utf-8'))
+                dq_chans = 0
+                if dataq2 != None:
+                    dq_chans = dataq2.channel_count
+
+                d = Format.format(data, dataq1.channel_count, dq_chans) + "\r\n"
+                #d = "1,2,3,4,5,6,7,8,9,10,11.0\r\n"
+
+                self.request.sendall(d.encode('utf-8'))
 
         except(ConnectionResetError, BrokenPipeError):
             pass
 
 
 def init():
+    global thermos, server_enabled, server
     # Get a list of active com ports to scan for possible DATAQ Instruments devices
     ports = list(serial.tools.list_ports.comports())
     header = []
@@ -89,14 +89,14 @@ def init():
         server_enabled = True
         host = config['Server']['host']
         port = config['Server']['port']
-
-        server = socketserver.ThreadingTCPServer((HOST, PORT), MyTCPHandler)
-        server.daemon_threads = True
         
+        server = socketserver.ThreadingTCPServer((host, int(port)), MyTCPHandler)
+        server.daemon_threads = True
+
         server_thread = threading.Thread(target=server.serve_forever)
         server_thread.daemon = True
         server_thread.start()
-    
+
     f.write('\t'.join(header) + '\n')
 
 def read():
@@ -107,10 +107,6 @@ def read():
     if dataq2 != None:
         dataq2.sendAvg=True
 
-    # while dataq.sendAvg ==True:
-    #     pass
-    #     #do nothing
-
     data = dataq1.out.get() 
 
     if dataq2 != None:
@@ -118,6 +114,7 @@ def read():
     
     data += [thermo.read() for thermo in thermos]
 
+    data += [int((time.time()-start_time)*1000)]
     return data
 
 init()
@@ -133,27 +130,32 @@ if dataq2 != None:
     dataq2.go()
 
 try:
-    while True: #time.time()-start_time <= 10:
+    while True:
         d = read()
+        data.append(d)
 
-        #Every second, print some data to the file.
-        if time.time() - t > 1:
+        if server_enabled:
+            items.put_nowait(d)
+
+        counter += 1
+        if counter >= 10:
+            #Write data to file
+            f.writelines(str(i) + '\n' for i in data)
+
             dq_chans = 0
             if dataq2 != None:
-                dq_chans = dataq.channel_count
+                dq_chans = dataq2.channel_count
 
             print(Format.pretty(d, dataq1.channel_count, dq_chans))
-            if server_enabled:
-                items.put_nowait(d)
-            t = time.time()
 
-        data.append(d)
-        counter +=1
-        if counter>= 10:
-            #write data to file
-            f.writelines(str(i) + '\n' for i in data)
             counter = 0
             data = []
+
+        remaining = 0.1 - (time.time() - t)
+        if remaining > 0:
+            time.sleep(remaining)
+        t = time.time()
+
 except:
     print("Exception caught!")
 dataq1.stop()
@@ -162,6 +164,7 @@ if dataq2 != None:
 
 if server_enabled:
     server.shutdown()
+
 f.writelines(str(i) + '\n' for i in data)
 print("Exiting!")
 f.close()

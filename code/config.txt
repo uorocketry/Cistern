@@ -1,7 +1,7 @@
 
 [Thermometers]
-enabled=false
-probes=23,24,25,16
+enabled=true
+probes=23,24,25,16,5,6,13,26
 
 [DATAQ]
 enabled=true
@@ -27,7 +27,6 @@ channel_count = 4
 sampling_rate = 20
 
 [Server]
-enabled=false
-
+enabled=true
 host=0.0.0.0
 port=8080

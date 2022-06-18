@@ -8,7 +8,7 @@ def force2(num):
 #Pressure gauges calibration
 #Swagelock: Volt -> PSI
 def press1(num):
-    return 98.88933 * num**2 - 235.8464 * num + 101.047911
+    return num * 1000
 
     #return num**2 * 154.76 - num*398.39 + 253.85   # previous calibration
 
@@ -74,14 +74,14 @@ def format(data, dataq1_len, dataq2_len):
         out.append(int(data[dq_1_len + dataq2_len + 1]))
     
     #Append all temperature probe readings
-    out += [float(data[d]) for d in range(dq_len, len(data))]
+    out += [data[d] for d in range(dq_len, len(data))]
 
-    return str(out).strip().strip("[]")
+    return ",".join([str(p) for p in out])
 
 
 def pretty(data, dataq1_len, dataq2_len):
     out = ""
-    if dataq1_len != None:
+    if dataq1_len != 0:
         for i in range(dataq1_len):
             num = float(data[i])
             #do conversion for sensors connected to the first Dataq here
@@ -100,7 +100,7 @@ def pretty(data, dataq1_len, dataq2_len):
         out += "\t".join(str(d) for d in data[:2])
         data = data[2:]
 
-    if dataq2_len != None:
+    if dataq2_len != 0:
         for i in range(dataq2_len):
             num = float(data[i])
             #do conversion for sensors connected to the first Dataq here
@@ -120,5 +120,5 @@ def pretty(data, dataq1_len, dataq2_len):
         data = data[2:]
 
     # Copy thermo sensors to output unchanged
-    return out + "\t".join(str(d) for d in data)
+    return out + "\t" + "\t".join(str(d) for d in data)
 

@@ -8,7 +8,8 @@ class Thermo:
         self.spi = spi
         
         
-        self.ce = gpiozero.DigitalOutputDevice(pin, active_high=False,initial_value=True)
+        self.ce = gpiozero.DigitalOutputDevice(pin, active_high=False,initial_value=False)
+        #self.ce.off()
 
 
 
@@ -16,7 +17,6 @@ class Thermo:
         self.ce.on()  #We control the chip enable pin manually. 
         data = self.spi.readbytes(4)  #read 32 bits from the interface.
         self.ce.off()
-
         data = int.from_bytes(data, "big")
 
         # We now decode the bits to get the temperature.
