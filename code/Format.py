@@ -94,7 +94,7 @@ def pretty(data, dataq1_len, dataq2_len):
             if i == 2:
                num = '{: 3.3f} Kg\t'.format( force1(num))
             if i == 3:
-               num = '{: 3.3f} Kg\t'.format( force2(num))
+               num = '{: 3.3f} N\t'.format( force2(num))
             out += num
         data = data[dataq1_len:]
         # Copy digital channel + sample count to output
