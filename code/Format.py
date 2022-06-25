@@ -2,8 +2,9 @@
 #S-gauge
 def force1(num):
     return num * 6.235 + 0.0624
+# Load cell
 def force2(num):
-    return num * 1 + 0
+    return num * 1525.2682 + 98.817
 
 #Pressure gauges calibration
 #Swagelock: Volt -> PSI
