@@ -1,0 +1,14 @@
+[Unit]
+Description=sensor_suite
+After=network.target
+
+[Service]
+Environment="INSIDE_SERVICE=1"
+ExecStart=/home/pi/Cistern/code/run.sh
+StandardOutput=inherit
+StandardError=inherit
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
