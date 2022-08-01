@@ -19,7 +19,7 @@ channel_count = 4
 sampling_rate = 20
 
 [DATAQ_2]
-enabled=false
+enabled=true
 serial_number=608C189A
 
 channel_count = 4

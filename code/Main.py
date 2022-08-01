@@ -19,7 +19,7 @@ spi.mode = 0
 spi.max_speed_hz = 500000
 
 dataq1 = dataq()
-dataq2 = None
+dataq2 = dataq()
 
 thermos = []
 server_enabled = False
@@ -70,7 +70,7 @@ def init():
 
     if config['DATAQ_2']['enabled']=='true':
         if dataq2.Init(config['DATAQ_2'], ports):
-            dataq2 = dataq()
+            #dataq2 = dataq()
             dataq2_len = int(config['DATAQ_2']['channel_count'])
             print("Found second DATAQ!")
             header += dataq2.send_output_fmt()
