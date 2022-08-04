@@ -140,6 +140,7 @@ class dataq(threading.Thread):
 
                             #send values, if needed.
                             #if self.trigger.qsize()!=0:
+                            #if self.sendAvg == True and samples > 100:
                             if self.sendAvg == True:
                                 self.avg = []
                                 for i in range(self.channel_count):

@@ -6,6 +6,7 @@ probes=23,24,25,16,5,6,13,26
 [DATAQ]
 enabled=true
 serial_number=593FE759
+#serial_number=608C189A
 
 #How many channels do we want to use? channels 1,...,channel_count are enabled.
 channel_count = 4
@@ -16,15 +17,16 @@ channel_count = 4
 # 3 channels: 24 kHz
 # 4 channels: 20 kHz
 # Minimum rate = 0.915 kHz
-sampling_rate = 20
+sampling_rate = 1
 
 [DATAQ_2]
 enabled=true
 serial_number=608C189A
+#serial_number=593FE759
 
 channel_count = 4
 
-sampling_rate = 20
+sampling_rate = 1
 
 [Server]
 enabled=true

@@ -102,10 +102,12 @@ def init():
 def read():
     '''None -> list of floats
     '''
+
     dataq1.sendAvg=True
 
     if dataq2 != None:
         dataq2.sendAvg=True
+
 
     data = dataq1.out.get() 
 
@@ -158,12 +160,13 @@ try:
 
 except:
     print("Exception caught!")
-dataq1.stop()
-if dataq2 != None:
-    dataq2.stop()
+finally:
+    dataq1.stop()
+    if dataq2 != None:
+        dataq2.stop()
 
-if server_enabled:
-    server.shutdown()
+    if server:
+        server.shutdown()
 
 f.writelines(str(i) + '\n' for i in data)
 print("Exiting!")

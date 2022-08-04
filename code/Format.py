@@ -9,7 +9,7 @@ def force2(num):
 #Pressure gauges calibration
 #Not Swagelock: Volt -> PSI
 def press1(num):
-    return num * 1000
+    return 621.89 * num - 332.58
 
     #return num**2 * 154.76 - num*398.39 + 253.85   # previous calibration
 
@@ -19,6 +19,7 @@ def press1(num):
     #    return num * 705.86 - 2268.4
 #MSP: 
 def press2(num):
+    #return 10786 * num - 3152.2
     return press1(num)
 
     #return num * 627.11 - 140.53                    # previous calibration
@@ -27,6 +28,9 @@ def press3(num):
     return press1(num)
 def press4(num):
     return press1(num)
+
+def calibrate(num):
+    return num*1000
 
 def format(data, dataq1_len, dataq2_len):
     dq_len = dataq1_len + dataq2_len
@@ -44,13 +48,17 @@ def format(data, dataq1_len, dataq2_len):
             num = float(data[i])
             #do conversion here
             if i == 0:
-               num = press2(num)
-            if i == 1:
+                #num = calibrate(num)
                 num = press1(num)
+            if i == 1:
+                #num = calibrate(num)
+                num = press2(num)
             #Not connected currently
             if i == 2:
+               #num = calibrate(num)
                num = force1(num)
             if i == 3:
+                #num = calibrate(num)
                 num = force2(num)
     
             out.append(num)
@@ -92,9 +100,9 @@ def pretty(data, dataq1_len, dataq2_len):
             num = float(data[i])
             #do conversion for sensors connected to the first Dataq here
             if i == 0:
-               num = '{: 3.3f} PSI\t'.format( press2(num))
-            if i == 1:
                num = '{: 3.3f} PSI\t'.format( press1(num))
+            if i == 1:
+               num = '{: 3.3f} PSI\t'.format( press2(num))
             # Not currently connected
             if i == 2:
                num = '{: 3.3f} Kg\t'.format( force1(num))
