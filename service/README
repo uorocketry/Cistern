@@ -1,0 +1,15 @@
+## Setup
+
+```bash
+sudo cp service/sensor_suite.service /etc/systemd/system/sensor_suite.service
+
+sudo systemctl daemon_reload
+sudo servicectl enable sensor_suite.service
+sudo servicectl start sensor_suite.service # or restart
+```
+
+## Logs
+
+```bash
+sudo journalctl -u sensor_suite.service
+```
